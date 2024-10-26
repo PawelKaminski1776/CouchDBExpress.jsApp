@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document List</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <h1>Documents</h1>
+
+  <form action="/" method="GET">
+    <input type="text" name="search" placeholder="Search Product..." value="<%= searchTerm %>">
+    <button type="submit">Search</button>
+  </form>
+
+
+  <div>
+    <h2>Add or Update Document</h2>
+    <form action="/document" method="POST">
+      <label for="id">Document ID (leave blank for new):</label><br>
+      <input type="text" id="id" name="_id" placeholder="Document ID"><br>
+
+      <label for="company">Company:</label><br>
+      <input type="text" id="company" name="Company" value=""><br>
+
+      <label for="product">Product:</label><br>
+      <input type="text" id="product" name="Product" value=""><br>
+
+
+      <input type="submit" value="Submit">
+    </form>
+  </div>
+
+  <div>
+    <h2>Document List</h2>
+    <table>
+      <tr>
+        <th>Company</th>
+        <th>Product</th>
+        <th>Actions</th>
+      </tr>
+      <% documents.forEach(doc => { %>
+        <tr>
+          <td><%= doc.Company %></td>
+          <td><%= doc.Product %></td>
+          <td>
+            <form action="/delete/<%= doc._id %>" method="POST" style="display:inline;">
+              <button type="submit">Delete</button>
+            </form>
+            <button onclick="editDocument('<%= doc._id %>', '<%= doc.Company %>', '<%= doc.Product %>')">Update</button>
+          </td>
+        </tr>
+      <% }); %>
+    </table>
+  </div>
+  <div>
+    <% if (page > 1) { %>
+      <a href="/?page=<%= page - 1 %>&search=<%= searchTerm %>">Previous</a>
+    <% } %>
+
+    <% if (page < totalPages) { %>
+      <a href="/?page=<%= page + 1 %>&search=<%= searchTerm %>">Next</a>
+    <% } %>
+  </div>
+  <div>
+    <button onclick="syncWithCouchDB()">Sync with CouchDB</button>
+  </div>
+
+  <script>
+    function editDocument(id, company, product) {
+      document.getElementById('id').value = id;
+      document.getElementById('company').value = company;
+      document.getElementById('product').value = product;
+    }
+    function syncWithCouchDB() {
+      fetch('/sync', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          alert('Sync successful!');
+        } else {
+          alert('Sync failed: ' + data.error);
+        }
+      })
+      .catch(err => {
+        console.error('Error during sync:', err);
+        alert('An error occurred during sync.');
+      });
+    }
+  </script>
+</body>
+</html>
